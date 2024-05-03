@@ -1,3 +1,8 @@
+#include <AccelStepper.h>
+#include <ezButton.h>
+#include <Servo.h>
+
+
 #define EN 8
 #define X_DIR 5
 #define X_STP 2
@@ -7,12 +12,9 @@
 #define Y_STP 3
 #define Y_LIMIT 10
 
-#define MAX_POSITION 0x7FFFFFFF
+#define Z_SERVO_PIN 11
 
 #define STEP_MM 5
-
-#include <AccelStepper.h>
-#include <ezButton.h>
 
 
 AccelStepper x_stepper(1, X_STP, X_DIR);
@@ -20,7 +22,7 @@ AccelStepper y_stepper(1, Y_STP, Y_DIR);
 ezButton x_limit(9);
 ezButton y_limit(10);
 
-
+Servo z_servo;
 
 int x_pos = 0;
 int y_pos = 0;
@@ -29,6 +31,10 @@ bool is_stopped = false;
 void home();
 void to_position(int x, int y);
 void to_out_of_reach_pos();
+void lower_pen();
+void raise_pen();
+void draw(int start_x, int start_y, int end_x, int end_y);
+void draw_ttt_board();
 
 void setup() {
   Serial.begin(9600);
@@ -45,8 +51,12 @@ void setup() {
   y_stepper.setMaxSpeed(500);
   y_stepper.setAcceleration(100);
 
+  z_servo.attach(Z_SERVO_PIN);
+
   home();
-  to_out_of_reach_pos();
+  draw_ttt_board();
+  //to_out_of_reach_pos();
+
 }
 
 void loop() {
@@ -55,6 +65,7 @@ void loop() {
 }
 
 void home() {
+  raise_pen();
   x_stepper.setSpeed(-100);
   y_stepper.setSpeed(-100);
   bool x_lim_reached = false;
@@ -84,6 +95,15 @@ void home() {
   to_position(10, 10);
 }
 
+
+void draw(int start_x, int start_y, int end_x, int end_y) {
+  raise_pen();
+  to_position(start_x, start_y);
+  lower_pen();
+  to_position(end_x, end_y);
+  raise_pen();
+}
+
 void to_position(int x, int y) {
   long x_steps = x * STEP_MM;
   long y_steps = y * STEP_MM;
@@ -111,8 +131,27 @@ void to_position(int x, int y) {
       return;
     }
   }
+  delay(100);
+}
+
+void draw_ttt_board() {
+  draw(100, 60, 100, 120);
+  draw(120, 120, 120, 60);
+  draw(80, 80, 140, 80);
+  draw(140, 100, 80, 100);
+  to_out_of_reach_pos();
 }
 
 void to_out_of_reach_pos() {
-  to_position(10, 250);
+  to_position(110, 200);
+}
+
+void raise_pen() {
+  z_servo.write(70);
+  delay(500);
+}
+
+void lower_pen() {
+  z_servo.write(0);
+  delay(500);
 }

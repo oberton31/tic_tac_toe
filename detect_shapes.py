@@ -1,63 +1,113 @@
 import cv2
 import numpy as np
+from minimax import findBestMove
 import time
 
-
-board = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+board = [['_', '_', '_'], ['_', '_', '_'], ['_', '_', '_']]
+player, opponent = 'x', 'o' 
 
 def coord_to_pos(circle_center, board_center):
     variance = 20
     x, y = circle_center
-    #print(x, y)
     center_x, center_y = board_center
     offset = 50
+
+    # 0, 0 point is top left of image
     if center_x - variance < x and center_x + variance > x \
         and center_y - variance < y and center_y + variance > y:
-        return 4
+        return 1, 1
     if center_x + offset - variance < x and center_x + offset + variance > x \
         and center_y - variance < y and center_y + variance > y:
-        return 5
+        return 1, 2
     elif center_x - offset - variance < x and center_x - offset + variance > x \
         and center_y - variance < y and center_y + variance > y:
-        return 3
-    elif center_x - offset - variance < x and center_x - offset + variance > x \
-        and center_y + offset - variance < y and center_y + offset + variance > y:
-        return 0
-    elif center_x - variance < x and center_x + variance > x \
-        and center_y + offset - variance < y and center_y + offset + variance > y:
-        return 1
-    elif center_x + offset - variance < x and center_x + offset + variance > x \
-        and center_y + offset - variance < y and center_y + offset + variance > y:
-        return 2
+        return 1, 0
     elif center_x - offset - variance < x and center_x - offset + variance > x \
         and center_y - offset - variance < y and center_y - offset + variance > y:
-        return 6
+        return 0, 0
     elif center_x - variance < x and center_x + variance > x \
         and center_y - offset - variance < y and center_y - offset + variance > y:
-        return 7
+        return 0, 1
     elif center_x + offset - variance < x and center_x + offset + variance > x \
         and center_y - offset - variance < y and center_y - offset + variance > y:
-        return 8
-    else: return 10
+        return 0, 2
+    elif center_x - offset - variance < x and center_x - offset + variance > x \
+        and center_y + offset - variance < y and center_y + offset + variance > y:
+        return 2, 0
+    elif center_x - variance < x and center_x + variance > x \
+        and center_y + offset - variance < y and center_y + offset + variance > y:
+        return 2, 1
+    elif center_x + offset - variance < x and center_x + offset + variance > x \
+        and center_y + offset - variance < y and center_y + offset + variance > y:
+        return 2, 2
+    else: return 10, 10
+
+
+def end_game(b):
+    for row in range(3) :      
+        if (b[row][0] == b[row][1] and b[row][1] == b[row][2]) :   
+            return True, row       
+  
+    # Checking for Columns for X or O victory.  
+    for col in range(3) : 
+        if (b[0][col] == b[1][col] and b[1][col] == b[2][col]) : 
+            return True, col + 3
+  
+    # Checking for Diagonals for X or O victory.  
+    if (b[0][0] == b[1][1] and b[1][1] == b[2][2]) : 
+        return True, 6
+
+  
+    if (b[0][2] == b[1][1] and b[1][1] == b[2][0]) : 
+        return True, 7
+  
+    
+    for row in range(3):
+        for col in range(4):
+            if b[row][col] == '_':
+                return False, None
+    return True, 8 # return tie
 
 def update_board(circle_center, board_center):
-    pos = coord_to_pos(circle_center, board_center)
-    if pos != 10 and board[pos] == 0:
-        board[pos] = 1
-        print(board)
-        # calculate next move based on board
-        # send machine to draw move
+    i, j = coord_to_pos(circle_center, board_center)
+    if (i, j) != (10, 10) and board[i][j] == '_':
+        board[i][j] = opponent
+        game_over, winning_combo = end_game(board)
+        if game_over:
+            # draw_win(winning_combo)
+            return True
+        time.sleep(5)
+        row, col = findBestMove(board)
+        board[row][col] = player
+        game_over, winning_combo = end_game(board)
+        if game_over:
+            # execute move, draw win
+            return True
+        else:
+            return False
 
-        # Make sure we  do not detect circles when there are not any there! Filter out some but need to be sure it is all
 
-def find_shapes():
+
+def play_game():
     camera = cv2.VideoCapture(0) # opening plugged in webcam
-    circle_pos = []
+    #circle_pos = []
     board_center = None
 
-    # wait here for game to be started
+    # on boot, zero device and move to ready position
     
-    # when started, send signal to draw board, and have agent make first move if randomly chosen
+    # wait for button press
+    button_pressed = True
+    while not button_pressed:
+        pass
+
+    board = [['_', '_', '_'], ['_', '_', '_'], ['_', '_', '_']]
+
+    # draw board
+    start_move = np.random.randint(2)
+    if start_move == 0:
+        row, col = findBestMove(board)
+        board[row][col] = player
+        # execute move
 
     while board_center is None:
         ret, frame = camera.read()
@@ -134,34 +184,17 @@ def find_shapes():
         
             for pt in detected_circles[0, :]:
                 a, b, r = pt[0], pt[1], pt[2]
-                min_dist = float('inf')
-                
-                # Check if (a, b) is already in circle_pos
-                if not any((a, b) == pos for pos in circle_pos):
-                    if not circle_pos:
-                        circle_pos.append((a, b))
-                        # play machine move
-                    else:
-                        for circle in circle_pos:
-                            dist = np.hypot(np.float64(circle[0]) - np.float64(a), np.float64(circle[1]) - np.float64(b))
-                            if dist < min_dist:
-                                min_dist = dist
-                            if min_dist < 10:
-                                break
-                        if min_dist >= 10:
-                            update_board((a, b), board_center)
-                            circle_pos.append((a, b))
-                            # play machine move
 
+                done = update_board((a, b), board_center)
+                if done: break
                 # Draw the circumference of the circle. 
-                cv2.circle(frame, (a, b), r, (0, 255, 0), 2) 
+                #cv2.circle(frame, (a, b), r, (0, 255, 0), 2) 
             
                 # Draw a small circle (of radius 1) to show the center. 
-                cv2.circle(frame, (a, b), 1, (0, 0, 255), 3) 
+                #cv2.circle(frame, (a, b), 1, (0, 0, 255), 3) 
         cv2.imshow("Detected Circle", frame) 
         cv2.waitKey(1)  # Add this line to refresh the window
-        #print(circle_pos)
 
 
 if __name__ == "__main__":
-    find_shapes()
+    play_game()

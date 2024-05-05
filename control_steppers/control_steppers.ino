@@ -35,6 +35,8 @@ void lower_pen();
 void raise_pen();
 void draw(int start_x, int start_y, int end_x, int end_y);
 void draw_ttt_board();
+void draw__move(int position);
+void draw_x(int x, int y);
 
 void setup() {
   Serial.begin(9600);
@@ -55,9 +57,9 @@ void setup() {
 
   home();
   draw_ttt_board();
-  //to_out_of_reach_pos();
-
+  draw_move(2);
 }
+
 
 void loop() {
   // put your main code here, to run repeatedly:
@@ -131,7 +133,34 @@ void to_position(int x, int y) {
       return;
     }
   }
-  delay(100);
+}
+
+void draw_x(int x, int y) {
+  draw(x - 5, y - 5, x + 5, y + 5);
+  draw(x - 5, y + 5, x + 5, y - 5);
+
+}
+
+void draw_move(int position) {
+  if (position == 0) {
+    draw_x(90, 110);
+  } else if (position == 1) {
+    draw_x(110, 110);
+  } else if (position == 2) {
+    draw_x(130, 110);
+  } else if (position == 3) {
+    draw_x(90, 90);
+  } else if (position == 4) {
+    draw_x(110, 90);
+  } else if (position == 5) {
+    draw_x(130, 90);
+  } else if (position == 6) {
+    draw_x(90, 70);
+  } else if (position == 7) {
+    draw_x(110, 70);
+  } else if (position == 8) {
+    draw_x(130, 70);
+  }
 }
 
 void draw_ttt_board() {
@@ -139,7 +168,6 @@ void draw_ttt_board() {
   draw(120, 120, 120, 60);
   draw(80, 80, 140, 80);
   draw(140, 100, 80, 100);
-  to_out_of_reach_pos();
 }
 
 void to_out_of_reach_pos() {
@@ -155,3 +183,4 @@ void lower_pen() {
   z_servo.write(0);
   delay(500);
 }
+

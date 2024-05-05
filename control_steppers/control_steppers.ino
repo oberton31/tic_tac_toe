@@ -1,6 +1,7 @@
 #include <AccelStepper.h>
 #include <ezButton.h>
 #include <Servo.h>
+#include <string.h>
 
 
 #define EN 8
@@ -37,6 +38,7 @@ void draw(int start_x, int start_y, int end_x, int end_y);
 void draw_ttt_board();
 void draw__move(int position);
 void draw_x(int x, int y);
+void draw_win(int win_type);
 
 void setup() {
   Serial.begin(9600);
@@ -56,13 +58,20 @@ void setup() {
   z_servo.attach(Z_SERVO_PIN);
 
   home();
-  draw_ttt_board();
-  draw_move(2);
+  }
 }
 
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  if (Serial.available() > 0) {
+    String msg = Serial.readStringUntil('\n');
+    msg.trim();
+    if (msg == "start") {
+      draw_ttt_board();
+      Serial.println("done")
+    }
+
+  }
 
 }
 
@@ -133,6 +142,19 @@ void to_position(int x, int y) {
       return;
     }
   }
+}
+
+void draw_win(int win_type) {
+  if (win_type >= 0 & win_type < 3) {
+    draw(80, 110 - (win_type * 20), 140, 110 - (win_type * 20)); // row win
+  } else if (win_type >= 3 & win_type < 6) {
+    draw(90 + (20 * (win_type - 3)), 60, 90 + (20 *(win_type - 3)), 120); // column win
+  } else if (win_type == 6) {
+    draw(140, 60, 80, 120);
+  } else if (win_type == 7) {
+    draw(80, 60, 140, 120);
+  }
+  //to_out_of_reach_pos();
 }
 
 void draw_x(int x, int y) {

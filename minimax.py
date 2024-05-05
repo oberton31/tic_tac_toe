@@ -60,12 +60,12 @@ def minimax(board, depth, isMax) :
     # If Maximizer has won the game return his/her  
     # evaluated score  
     if (score == 10) :  
-        return score 
+        return score - depth # may need to remove this
   
     # If Minimizer has won the game return his/her  
     # evaluated score  
     if (score == -10) : 
-        return score 
+        return score + depth
   
     # If there are no more moves and no winner then  
     # it is a tie  
@@ -149,6 +149,18 @@ def findBestMove(board) :
                     bestMove = (i, j) 
                     bestVal = moveVal 
   
-    print("The value of the best Move is :", bestVal) 
-    print() 
+    #print("The value of the best Move is :", bestVal) 
+    #print() 
     return bestMove 
+
+# Driver code 
+board = [ 
+    [ '_', '_', '_' ],  
+    [ '_', '_', '_' ],  
+    [ '_', '_', '_' ]  
+] 
+  
+bestMove = findBestMove(board)  
+  
+print("The Optimal Move is :")  
+print("ROW:", bestMove[0], " COL:", bestMove[1])

@@ -1,8 +1,7 @@
 player, opponent = 'x', 'o' 
   
 # This function returns true if there are moves  
-# remaining on the board. It returns false if  
-# there are no moves left to play.  
+# modified version of minimax algorithm from geeksforgeeks article
 def isMovesLeft(board) :  
   
     for i in range(3) : 
@@ -11,8 +10,7 @@ def isMovesLeft(board) :
                 return True 
     return False
   
-# This is the evaluation function as discussed  
-# in the previous article ( http://goo.gl/sJgv68 )  
+
 def evaluate(b) :  
     
     # Checking for Rows for X or O victory.  
@@ -149,12 +147,14 @@ def findBestMove(board) :
                     bestMove = (i, j) 
                     bestVal = moveVal 
   
-    move_no = 0
-    if  i == 0:
-        move_no = j
-    elif i == 1:
-        move_no = j + 3
-    elif i == 2:
-        move_no = j + 6
-    
+
+    move_no = bestMove[0] * 3 + bestMove[1]
+
     return bestMove, move_no
+
+
+board = [['_', 'o', 'x'], ['x', 'o', 'o'], ['_', '_', 'o']]
+
+move = findBestMove(board)
+
+print(move)

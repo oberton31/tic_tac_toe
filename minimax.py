@@ -149,18 +149,12 @@ def findBestMove(board) :
                     bestMove = (i, j) 
                     bestVal = moveVal 
   
-    #print("The value of the best Move is :", bestVal) 
-    #print() 
-    return bestMove 
-
-# Driver code 
-board = [ 
-    [ '_', '_', '_' ],  
-    [ '_', '_', '_' ],  
-    [ '_', '_', '_' ]  
-] 
-  
-bestMove = findBestMove(board)  
-  
-print("The Optimal Move is :")  
-print("ROW:", bestMove[0], " COL:", bestMove[1])
+    move_no = 0
+    if  i == 0:
+        move_no = j
+    elif i == 1:
+        move_no = j + 3
+    elif i == 2:
+        move_no = j + 6
+    
+    return bestMove, move_no

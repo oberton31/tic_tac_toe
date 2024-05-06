@@ -57,7 +57,15 @@ void setup() {
 
   z_servo.attach(Z_SERVO_PIN);
 
-  home();
+  while (true) {
+    Serial.println("ready");
+    delay(500);
+    if (Serial.available() > 0) {
+      String msg = Serial.readStringUntil('\n');
+        home();
+        to_out_of_reach_pos();
+        break;
+    }
   }
 }
 
@@ -68,11 +76,20 @@ void loop() {
     msg.trim();
     if (msg == "start") {
       draw_ttt_board();
-      Serial.println("done")
+      Serial.println("done");
+    } else if (msg == "return") {
+      to_out_of_reach_pos();
+    } else {
+      String action = msg.substring(0, 3);
+      int num = msg.substring(4).toInt();
+      if (action == "win") {
+        draw_win(num);
+      } else if (action == "mov") {
+        draw_move(num);
+      }
     }
-
+    Serial.println("done");
   }
-
 }
 
 void home() {
@@ -154,7 +171,7 @@ void draw_win(int win_type) {
   } else if (win_type == 7) {
     draw(80, 60, 140, 120);
   }
-  //to_out_of_reach_pos();
+  to_out_of_reach_pos();
 }
 
 void draw_x(int x, int y) {
@@ -205,4 +222,3 @@ void lower_pen() {
   z_servo.write(0);
   delay(500);
 }
-

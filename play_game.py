@@ -5,12 +5,12 @@ import serial
 import time
 from gpiozero import Button
 
-board = [['_', '_', '_'], ['_', '_', '_'], ['_', '_', '_']]
+
 player, opponent = 'x', 'o' 
 
 ser = serial.Serial('/dev/ttyACM0', 9600, timeout=1)
 
-button = Button(4)
+button = Button(3)
 
 def send_message(message):
     ser.write(message.encode('utf-8'))
@@ -59,68 +59,71 @@ def coord_to_pos(circle_center, board_center):
 
 def end_game(b):
     for row in range(3) :      
-        if (b[row][0] == b[row][1] and b[row][1] == b[row][2]) :   
+        if (b[row][0] == b[row][1] == b[row][1] == b[row][2] != '_') :   
             return True, row       
   
     # Checking for Columns for X or O victory.  
     for col in range(3) : 
-        if (b[0][col] == b[1][col] and b[1][col] == b[2][col]) : 
+        if (b[0][col] == b[1][col] == b[1][col] == b[2][col] != '_') : 
             return True, col + 3
   
     # Checking for Diagonals for X or O victory.  
-    if (b[0][0] == b[1][1] and b[1][1] == b[2][2]) : 
+    if (b[0][0] == b[1][1] == b[1][1] == b[2][2] != '_') : 
         return True, 6
 
   
-    if (b[0][2] == b[1][1] and b[1][1] == b[2][0]) : 
+    if (b[0][2] == b[1][1] == b[1][1] == b[2][0] != '_') : 
         return True, 7
   
     
     for row in range(3):
-        for col in range(4):
+        for col in range(3):
             if b[row][col] == '_':
                 return False, None
     return True, 8 # return tie
 
-def update_board(circle_center, board_center):
+def update_board(circle_center, board_center, board):
     i, j= coord_to_pos(circle_center, board_center)
     if (i, j) != (10, 10) and board[i][j] == '_':
         board[i][j] = opponent
         game_over, winning_combo = end_game(board)
         if game_over:
             send_message(f"win {winning_combo}\n")
-            return True
-        time.sleep(5)
-        row, col, move_no = findBestMove(board)
+            return board, True
+        time.sleep(1)
+        move, move_no = findBestMove(board)
+        row, col = move
         board[row][col] = player
         game_over, winning_combo = end_game(board)
+        print(board)
         if game_over:
             send_message(f"mov {move_no}\n")
             send_message(f"win {winning_combo}\n")
-            return True
+            return board, True
         else:
             send_message(f"mov {move_no}")
             send_message("return\n")
-            return False
-
+            return board, False
+    return board, False
 
 
 def play_game():
     camera = cv2.VideoCapture(0) # opening plugged in webcam
     #circle_pos = []
-    board_center = None
+    #board_center = None
 
     # on boot, zero device and move to ready position
     
     # Wait until arduino is ready to send/recieve messages
-    ser.flush()
+    ser.reset_input_buffer()
     while True:
-
         if (ser.in_waiting > 0):
             msg = ser.readline().decode('utf-8').rstrip() #  pull message from buffer
-            ser.write("ready\n".encode('utf-8')) 
-            # arduino now  homes and moves to out of way position
-            break 
+            if msg == "ready":
+                ser.write("ready\n".encode('utf-8')) 
+                # arduino now  homes and moves to out of way position
+                print(msg)
+                break 
     ser.flush()
     
     while True:
@@ -128,7 +131,7 @@ def play_game():
 
         while not button.is_pressed:
             pass
-    
+        print("button pressed")
 
         board = [['_', '_', '_'], ['_', '_', '_'], ['_', '_', '_']]
 
@@ -137,11 +140,12 @@ def play_game():
         
         start_move = np.random.randint(2)
         if start_move == 0:
-            row, col, move_no = findBestMove(board)
+            move, move_no = findBestMove(board)
+            row, col = move
             board[row][col] = player
             send_message(f"mov {move_no}\n")
         send_message("return\n")
-
+        '''
         while board_center is None:
             ret, frame = camera.read()
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -188,14 +192,15 @@ def play_game():
                     cv2.imshow('Center Rectangle', frame)
 
             cv2.waitKey(1)
-        
-        print(board_center)
+        '''
+        board_center = (265, 220)
 
         # after board is chosen, wait until new circle is detected
         # if new circle is detected, update board and have agent determine new move
         # draw new move
         done = False
         while not done:
+            print(board)
             ret, frame = camera.read()
 
             # Convert to grayscale. 
@@ -217,7 +222,7 @@ def play_game():
             
                 for pt in detected_circles[0, :]:
                     a, b, r = pt[0], pt[1], pt[2]
-                    done = update_board((a, b), board_center)
+                    board, done = update_board((a, b), board_center, board)
 
                     # Draw the circumference of the circle. 
                     #cv2.circle(frame, (a, b), r, (0, 255, 0), 2) 
@@ -227,7 +232,7 @@ def play_game():
             cv2.imshow("Detected Circle", frame) 
             cv2.waitKey(1)  # Add this line to refresh the window
         #  game is over, wait to start new instance
-
+        print(done)
 
 if __name__ == "__main__":
     play_game()

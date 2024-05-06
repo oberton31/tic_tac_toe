@@ -39,6 +39,8 @@ void draw_ttt_board();
 void draw__move(int position);
 void draw_x(int x, int y);
 void draw_win(int win_type);
+void serialFlush();
+void start();
 
 void setup() {
   Serial.begin(9600);
@@ -56,17 +58,8 @@ void setup() {
   y_stepper.setAcceleration(100);
 
   z_servo.attach(Z_SERVO_PIN);
-
-  while (true) {
-    Serial.println("ready");
-    delay(500);
-    if (Serial.available() > 0) {
-      String msg = Serial.readStringUntil('\n');
-        home();
-        to_out_of_reach_pos();
-        break;
-    }
-  }
+  serialFlush();
+  start();
 }
 
 
@@ -76,7 +69,6 @@ void loop() {
     msg.trim();
     if (msg == "start") {
       draw_ttt_board();
-      Serial.println("done");
     } else if (msg == "return") {
       to_out_of_reach_pos();
     } else {
@@ -92,6 +84,28 @@ void loop() {
   }
 }
 
+void start() {
+  while (true) {
+    Serial.println("ready");
+    delay(500);
+    if (Serial.available() > 0) {
+      String msg = Serial.readStringUntil('\n');
+      //home();
+      //to_out_of_reach_pos();
+      if (msg == "ready") {
+        home();
+        to_out_of_reach_pos();
+        return;
+      }
+    }
+  }
+}
+
+void serialFlush() {
+  while(Serial.available() > 0) {
+    char remove = Serial.read();
+  }
+}
 void home() {
   raise_pen();
   x_stepper.setSpeed(-100);

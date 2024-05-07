@@ -76,6 +76,7 @@ void loop() {
       int num = msg.substring(4).toInt();
       if (action == "win") {
         draw_win(num);
+        serialFlush();
       } else if (action == "mov") {
         draw_move(num);
       }

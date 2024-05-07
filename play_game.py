@@ -223,16 +223,16 @@ def play_game():
                 for pt in detected_circles[0, :]:
                     a, b, r = pt[0], pt[1], pt[2]
                     board, done = update_board((a, b), board_center, board)
-
+                    if done: break;
                     # Draw the circumference of the circle. 
                     #cv2.circle(frame, (a, b), r, (0, 255, 0), 2) 
                 
                     # Draw a small circle (of radius 1) to show the center. 
                     #cv2.circle(frame, (a, b), 1, (0, 0, 255), 3) 
-            cv2.imshow("Detected Circle", frame) 
-            cv2.waitKey(1)  # Add this line to refresh the window
+            #cv2.imshow("Detected Circle", frame) 
+            #cv2.waitKey(1)  # Add this line to refresh the window
         #  game is over, wait to start new instance
-        print(done)
+        ser.reset_input_buffer()
 
 if __name__ == "__main__":
     play_game()

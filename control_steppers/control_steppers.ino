@@ -52,12 +52,14 @@ void setup() {
   y_limit.setDebounceTime(50);
 
   x_stepper.setMaxSpeed(500);
-  x_stepper.setAcceleration(100);
+  x_stepper.setAcceleration(30);
 
   y_stepper.setMaxSpeed(500);
-  y_stepper.setAcceleration(100);
+  y_stepper.setAcceleration(30);
 
   z_servo.attach(Z_SERVO_PIN);
+
+  
   serialFlush();
   start();
 }

@@ -84,7 +84,7 @@ def end_game(b):
 
 def update_board(circle_center, board_center, board):
     i, j= coord_to_pos(circle_center, board_center)
-    if (i, j) != (10, 10) and board[i][j] == '_':
+    if i != 10 and board[i][j] == '_':
         board[i][j] = opponent
         game_over, winning_combo = end_game(board)
         if game_over:
@@ -95,7 +95,6 @@ def update_board(circle_center, board_center, board):
         row, col = move
         board[row][col] = player
         game_over, winning_combo = end_game(board)
-        print(board)
         if game_over:
             send_message(f"mov {move_no}\n")
             send_message(f"win {winning_combo}\n")
@@ -222,8 +221,9 @@ def play_game():
             
                 for pt in detected_circles[0, :]:
                     a, b, r = pt[0], pt[1], pt[2]
-                    board, done = update_board((a, b), board_center, board)
-                    if done: break;
+                    if r < 40 and r > 5:
+                        board, done = update_board((a, b), board_center, board)
+                        if done: break;
                     # Draw the circumference of the circle. 
                     #cv2.circle(frame, (a, b), r, (0, 255, 0), 2) 
                 
